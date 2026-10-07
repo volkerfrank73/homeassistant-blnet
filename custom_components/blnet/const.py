@@ -4,5 +4,8 @@ from __future__ import annotations
 
 DOMAIN = "blnet"
 
-DEFAULT_PORT = 9000
-DEFAULT_SCAN_INTERVAL = 30
+CONF_NODE = "can_node"
+
+DEFAULT_PORT = 80
+DEFAULT_SCAN_INTERVAL = 60
+MIN_SCAN_INTERVAL = 15

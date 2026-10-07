@@ -2,20 +2,33 @@
   "config": {
     "step": {
       "user": {
-        "title": "BLNET einrichten",
-        "description": "Verbindung zum BLNET-Gateway konfigurieren",
+        "title": "BL-NET einrichten",
+        "description": "Verbindung zur Weboberfläche des BL-NET. Passwort leer lassen, wenn keines gesetzt ist.",
         "data": {
           "host": "Host",
+          "password": "Passwort",
           "port": "Port",
+          "can_node": "CAN-Knoten (optional, leer = aktiver Knoten des Geräts)",
           "scan_interval": "Abfrageintervall (Sekunden)"
         }
       }
+    },
+    "error": {
+      "cannot_connect": "Unter dieser Adresse wurde kein BL-NET gefunden.",
+      "invalid_auth": "Anmeldung fehlgeschlagen. Passwort prüfen. Das BL-NET erlaubt nur eine Sitzung, andere geöffnete Weboberflächen also schließen.",
+      "unknown": "Unerwarteter Fehler."
+    },
+    "abort": {
+      "already_configured": "Dieses BL-NET ist bereits eingerichtet.",
+      "cannot_connect": "Unter dieser Adresse wurde kein BL-NET gefunden.",
+      "invalid_auth": "Anmeldung fehlgeschlagen. Passwort prüfen.",
+      "unknown": "Unerwarteter Fehler."
     }
   },
   "options": {
     "step": {
       "init": {
-        "title": "BLNET Optionen",
+        "title": "BL-NET Optionen",
         "data": {
           "scan_interval": "Abfrageintervall (Sekunden)"
         }

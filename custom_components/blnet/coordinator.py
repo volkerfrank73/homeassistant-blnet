@@ -5,35 +5,44 @@ from __future__ import annotations
 import logging
 from datetime import timedelta
 
+from pyblnet_async import BLNETClient, BLNETData, BLNETError
+
+from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.update_coordinator import DataUpdateCoordinator, UpdateFailed
 
-from .api import BLNetApiClient
 from .const import DOMAIN
 
 _LOGGER = logging.getLogger(__name__)
 
+type BLNETConfigEntry = ConfigEntry[BLNETDataUpdateCoordinator]
 
-class BLNetDataUpdateCoordinator(DataUpdateCoordinator[dict[str, object]]):
-    """Coordinate BLNET data fetching."""
+
+class BLNETDataUpdateCoordinator(DataUpdateCoordinator[BLNETData]):
+    """Fetch BLNET data in one go for all entities."""
+
+    config_entry: BLNETConfigEntry
 
     def __init__(
         self,
         hass: HomeAssistant,
-        api: BLNetApiClient,
-        scan_interval_seconds: int,
+        entry: BLNETConfigEntry,
+        client: BLNETClient,
+        scan_interval: int,
     ) -> None:
         super().__init__(
             hass,
-            logger=_LOGGER,
+            _LOGGER,
+            config_entry=entry,
             name=DOMAIN,
-            update_interval=timedelta(seconds=scan_interval_seconds),
+            update_interval=timedelta(seconds=scan_interval),
         )
-        self.api = api
+        self.client = client
 
-    async def _async_update_data(self) -> dict[str, object]:
-        """Fetch data from BLNET and map it to coordinator data."""
+    async def _async_update_data(self) -> BLNETData:
         try:
-            return await self.api.async_get_status()
-        except Exception as err:  # pragma: no cover - safeguard for bootstrap
-            raise UpdateFailed(f"Failed to update BLNET data: {err}") from err
+            return await self.client.async_fetch()
+        except BLNETError as err:
+            # The BL-NET allows one session at a time, so a login failure can be
+            # temporary (e.g. someone has the web interface open): do not start reauth.
+            raise UpdateFailed(f"Error talking to BL-NET: {err}") from err

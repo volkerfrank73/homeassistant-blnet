@@ -2,20 +2,33 @@
   "config": {
     "step": {
       "user": {
-        "title": "Set up BLNET",
-        "description": "Configure connection to the BLNET gateway",
+        "title": "Set up BL-NET",
+        "description": "Connect to the web interface of the BL-NET. Leave the password empty if none is set.",
         "data": {
           "host": "Host",
+          "password": "Password",
           "port": "Port",
+          "can_node": "CAN node (optional, keeps the active node if empty)",
           "scan_interval": "Scan interval (seconds)"
         }
       }
+    },
+    "error": {
+      "cannot_connect": "No BL-NET found at this address.",
+      "invalid_auth": "Login failed. Check the password. The BL-NET allows only one session, so close other open web interfaces.",
+      "unknown": "Unexpected error."
+    },
+    "abort": {
+      "already_configured": "This BL-NET is already configured.",
+      "cannot_connect": "No BL-NET found at this address.",
+      "invalid_auth": "Login failed. Check the password.",
+      "unknown": "Unexpected error."
     }
   },
   "options": {
     "step": {
       "init": {
-        "title": "BLNET options",
+        "title": "BL-NET options",
         "data": {
           "scan_interval": "Scan interval (seconds)"
         }

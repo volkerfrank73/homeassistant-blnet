@@ -1,66 +1,61 @@
-"""Sensor platform for BLNET."""
+"""Sensor platform for BLNET: analog inputs."""
 
 from __future__ import annotations
 
-from dataclasses import dataclass
+from pyblnet_async import AnalogValue
 
-from homeassistant.components.sensor import SensorEntity, SensorEntityDescription
-from homeassistant.config_entries import ConfigEntry
+from homeassistant.components.sensor import SensorDeviceClass, SensorEntity, SensorStateClass
+from homeassistant.const import UnitOfTemperature
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
-from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
-from .const import DOMAIN
-from .coordinator import BLNetDataUpdateCoordinator
-
-
-@dataclass(frozen=True, kw_only=True)
-class BLNetSensorEntityDescription(SensorEntityDescription):
-    """Describe a BLNET sensor entity."""
-
-
-SENSOR_TYPES: tuple[BLNetSensorEntityDescription, ...] = (
-    BLNetSensorEntityDescription(
-        key="available",
-        name="BLNET Available",
-        icon="mdi:lan-connect",
-    ),
-)
+from .coordinator import BLNETConfigEntry, BLNETDataUpdateCoordinator
+from .entity import BLNETEntity, async_add_channels
 
 
 async def async_setup_entry(
     hass: HomeAssistant,
-    entry: ConfigEntry,
+    entry: BLNETConfigEntry,
     async_add_entities: AddEntitiesCallback,
 ) -> None:
-    """Set up BLNET sensors from config entry."""
-    coordinator: BLNetDataUpdateCoordinator = hass.data[DOMAIN][entry.entry_id]
-
-    async_add_entities(
-        BLNetSensor(coordinator=coordinator, entry=entry, description=description)
-        for description in SENSOR_TYPES
+    """Set up BLNET sensors from a config entry."""
+    coordinator = entry.runtime_data
+    async_add_channels(
+        entry,
+        async_add_entities,
+        lambda data: data.analog,
+        lambda channel: BLNETSensor(coordinator, entry, channel),
     )
 
 
-class BLNetSensor(CoordinatorEntity[BLNetDataUpdateCoordinator], SensorEntity):
-    """Represent a BLNET sensor."""
+class BLNETSensor(BLNETEntity, SensorEntity):
+    """An analog input (temperature etc.)."""
 
-    entity_description: BLNetSensorEntityDescription
+    _attr_state_class = SensorStateClass.MEASUREMENT
 
     def __init__(
-        self,
-        coordinator: BLNetDataUpdateCoordinator,
-        entry: ConfigEntry,
-        description: BLNetSensorEntityDescription,
+        self, coordinator: BLNETDataUpdateCoordinator, entry: BLNETConfigEntry, channel: int
     ) -> None:
-        super().__init__(coordinator)
-        self.entity_description = description
-        self._attr_unique_id = f"{entry.entry_id}_{description.key}"
+        super().__init__(coordinator, entry, channel)
+        # Same unique_id as the legacy YAML integration, so registry settings survive.
+        self._attr_unique_id = f"blnet_sensor_blnet analog {channel}"
+
+    def _item(self) -> AnalogValue | None:
+        return self.coordinator.data.analog.get(self._channel)
 
     @property
-    def native_value(self) -> bool | None:
-        """Return sensor value from coordinator data."""
-        value = self.coordinator.data.get(self.entity_description.key)
-        if isinstance(value, bool):
-            return value
+    def native_value(self) -> float | None:
+        item = self._item()
+        return item.value if item is not None else None
+
+    @property
+    def native_unit_of_measurement(self) -> str | None:
+        item = self._item()
+        return item.unit if item is not None else None
+
+    @property
+    def device_class(self) -> SensorDeviceClass | None:
+        item = self._item()
+        if item is not None and item.unit == UnitOfTemperature.CELSIUS:
+            return SensorDeviceClass.TEMPERATURE
         return None
