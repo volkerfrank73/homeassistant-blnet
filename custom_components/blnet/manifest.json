@@ -9,7 +9,7 @@
   "iot_class": "local_polling",
   "issue_tracker": "https://github.com/volkerfrank73/homeassistant-blnet/issues",
   "requirements": [
-    "pyblnet-async @ git+https://github.com/volkerfrank73/pyblnet-async@v0.1.0"
+    "pyblnet-async @ git+https://github.com/volkerfrank73/pyblnet-async@v0.1.1"
   ],
-  "version": "0.2.0"
+  "version": "0.2.1"
 }

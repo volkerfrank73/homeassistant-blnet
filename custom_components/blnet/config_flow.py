@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import logging
 from typing import Any
 from urllib.parse import urlparse
 
@@ -20,6 +21,8 @@ from .const import (
     DOMAIN,
     MIN_SCAN_INTERVAL,
 )
+
+_LOGGER = logging.getLogger(__name__)
 
 _SCAN_INTERVAL = vol.All(vol.Coerce(int), vol.Range(min=MIN_SCAN_INTERVAL))
 
@@ -40,11 +43,14 @@ class BLNETConfigFlow(ConfigFlow, domain=DOMAIN):
         )
         try:
             await client.async_test_connection()
-        except BLNETConnectionError:
+        except BLNETConnectionError as err:
+            _LOGGER.debug("BL-NET connection test failed: %s", err)
             return "cannot_connect"
-        except BLNETAuthError:
+        except BLNETAuthError as err:
+            _LOGGER.debug("BL-NET login failed: %s", err)
             return "invalid_auth"
-        except Exception:  # noqa: BLE001
+        except Exception:
+            _LOGGER.exception("Unexpected error while testing the BL-NET connection")
             return "unknown"
         return None
 
@@ -101,6 +107,12 @@ class BLNETConfigFlow(ConfigFlow, domain=DOMAIN):
         self._abort_if_unique_id_configured()
 
         if (error := await self._async_test(data)) is not None:
+            _LOGGER.warning(
+                "Import of the YAML configuration for %s failed (%s). "
+                "Add the integration in the UI instead",
+                host,
+                error,
+            )
             return self.async_abort(reason=error)
 
         scan_interval = max(
