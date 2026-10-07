@@ -1,0 +1,25 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "title": "Set up BLNET",
+        "description": "Configure connection to the BLNET gateway",
+        "data": {
+          "host": "Host",
+          "port": "Port",
+          "scan_interval": "Scan interval (seconds)"
+        }
+      }
+    }
+  },
+  "options": {
+    "step": {
+      "init": {
+        "title": "BLNET options",
+        "data": {
+          "scan_interval": "Scan interval (seconds)"
+        }
+      }
+    }
+  }
+}
