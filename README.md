@@ -92,3 +92,7 @@ pytest
 
 Neue Versionen werden als GitHub-Release mit Tag `vX.Y.Z` veröffentlicht; die
 Version in `custom_components/blnet/manifest.json` muss dazu passen.
+
+## Lizenz
+
+[MIT](LICENSE)
