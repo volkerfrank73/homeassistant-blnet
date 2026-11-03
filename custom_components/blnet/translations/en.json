@@ -30,8 +30,28 @@
       "init": {
         "title": "BL-NET options",
         "data": {
-          "scan_interval": "Scan interval (seconds)"
-        }
+          "scan_interval": "Scan interval (seconds)",
+          "source": "Data source",
+          "ta_port": "TA port",
+          "ta_reset": "Clear BL-NET memory after reading",
+          "names": "Names of inputs (S) and outputs (A)"
+        },
+        "description": "Choose the data source. The TA port (default 40000) adds flow rates, heat meters and all outputs; outputs can only be switched through the web interface.\n\nNames: one line per input or output, e.g. `S1 = Collector temperature` or `A6 = Heating pump`. Prefilled with the names of the web interface. In TA-only mode, digital inputs are only created when they have a name here.\n\n**Caution:** \"Clear BL-NET memory after reading\" deletes the data logged in the BL-NET (e.g. for Winsol) on every poll. This cannot be undone."
+      }
+    },
+    "error": {
+      "ta_cannot_connect": "The TA port does not answer. Check the port in the BL-NET Ethernet settings.",
+      "ta_unsupported": "The BL-NET does not log in CAN mode; other modes are not supported.",
+      "names_invalid": "Line not understood: \"{line}\". Expected e.g. `S1 = Name` (S1–S16) or `A6 = Name` (A1–A13).",
+      "unknown": "Unexpected error."
+    }
+  },
+  "selector": {
+    "source": {
+      "options": {
+        "web": "Web interface only",
+        "web_ta": "Web interface and TA port",
+        "ta": "TA port only (read only)"
       }
     }
   }

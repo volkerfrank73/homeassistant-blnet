@@ -30,8 +30,28 @@
       "init": {
         "title": "BL-NET Optionen",
         "data": {
-          "scan_interval": "Abfrageintervall (Sekunden)"
-        }
+          "scan_interval": "Abfrageintervall (Sekunden)",
+          "source": "Datenquelle",
+          "ta_port": "TA-Port",
+          "ta_reset": "Datenspeicher des BL-NET nach Abruf löschen",
+          "names": "Namen der Eingänge (S) und Ausgänge (A)"
+        },
+        "description": "Datenquelle wählen. Über den TA-Port (Standard 40000) kommen zusätzlich Durchfluss, Wärmemengenzähler und alle Ausgänge; schalten lassen sich Ausgänge nur über die Weboberfläche.\n\nNamen: eine Zeile je Eingang oder Ausgang, z. B. `S1 = Temperatur Kollektor` oder `A6 = Heizkreis Pumpe`. Vorbelegt mit den Namen der Weboberfläche. Im Modus „nur TA-Port“ werden digitale Eingänge nur angelegt, wenn sie hier einen Namen haben.\n\n**Achtung:** „Datenspeicher nach Abruf löschen“ löscht bei jedem Abruf die im BL-NET aufgezeichneten Daten (z. B. für Winsol). Das lässt sich nicht rückgängig machen."
+      }
+    },
+    "error": {
+      "ta_cannot_connect": "Der TA-Port antwortet nicht. Port im BL-NET unter Ethernet prüfen.",
+      "ta_unsupported": "Das BL-NET loggt nicht im CAN-Modus; andere Modi werden nicht unterstützt.",
+      "names_invalid": "Zeile nicht verstanden: „{line}“. Erwartet z. B. `S1 = Name` (S1–S16) oder `A6 = Name` (A1–A13).",
+      "unknown": "Unerwarteter Fehler."
+    }
+  },
+  "selector": {
+    "source": {
+      "options": {
+        "web": "Nur Weboberfläche",
+        "web_ta": "Weboberfläche und TA-Port",
+        "ta": "Nur TA-Port (nur lesend)"
       }
     }
   }

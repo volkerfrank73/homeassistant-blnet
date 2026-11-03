@@ -2,7 +2,9 @@
 
 Custom Integration für das **BL-NET** von Technische Alternative (TA). Sie liest
 über die Weboberfläche des BL-NET die Werte des angeschlossenen Reglers
-(z. B. UVR1611) und kann dessen digitale Ausgänge schalten.
+(z. B. UVR1611) und kann dessen digitale Ausgänge schalten. Optional liest sie
+zusätzlich über den TA-Port (Direktport) Werte, die die Weboberfläche nicht
+zeigt.
 
 Die Kommunikation läuft über die Bibliothek
 [pyblnet-async](https://github.com/volkerfrank73/pyblnet-async).
@@ -17,17 +19,63 @@ Die Kommunikation läuft über die Bibliothek
 
 Neue Kanäle, die das BL-NET später meldet, werden automatisch ergänzt.
 
-### Schalter der digitalen Ausgänge
+### Datenquelle: Weboberfläche, TA-Port oder beides
 
-Für jeden Ausgang gibt es zwei Schalter. Beide tragen den Namen des Ausgangs
-aus dem BL-NET; Home Assistant hängt deshalb an die Entity-ID des zweiten ein
-Suffix an.
+Unter *Konfigurieren* → **Datenquelle**:
 
-- **Ausgang** (unique_id `blnet_switch_<n>`): schaltet den Ausgang ein oder aus
-  und setzt ihn dabei in den Handbetrieb.
-- **Automatik** (unique_id `blnet_mode_switch_<n>`): *Ein* gibt den Ausgang an
-  den Regler zurück (AUTO). *Aus* wechselt in den Handbetrieb und behält den
-  aktuellen Schaltzustand bei.
+| Datenquelle | Inhalt |
+|---|---|
+| Nur Weboberfläche (Standard) | wie oben |
+| Weboberfläche und TA-Port | wie oben, dazu vom TA-Port nur, was im Web fehlt: Eingänge wie Durchfluss, Wärmemengenzähler und Ausgänge, die das Web nicht listet |
+| Nur TA-Port | alle Werte über den TA-Port, **nur lesend**: keine Schalter, Ausgänge als `binary_sensor` |
+
+Zusätzliche Entitäten über den TA-Port:
+
+| Plattform | Inhalt | unique_id |
+|---|---|---|
+| `sensor` | Eingänge mit Messwert (Temperatur, Durchfluss in L/h, …) | `blnet_sensor_blnet analog <n>`, wie die Web-Sensoren |
+| `binary_sensor` | digitale Eingänge, nur im Modus „Nur TA-Port“ und nur mit Namen (siehe unten) | `blnet_digital_input_<n>`, wie im Web |
+| `sensor` | Wärmemengenzähler, nur aktive: Leistung (kW) und Wärmemenge (kWh, `total_increasing`, für das Energie-Dashboard geeignet) | `blnet_direct_heat_meter_<n>_power`, `…_energy` |
+| `binary_sensor` | Schaltzustand der Ausgänge A1–A13 (mit Web nur die dort nicht gelisteten) | `blnet_direct_output_<n>` |
+
+Eingänge behalten beim Wechsel zwischen Weboberfläche und TA-Port ihre
+`unique_id` und damit Entity-ID und Verlauf. Die Schalter gibt es nur mit der
+Weboberfläche; im Modus „Nur TA-Port“ bleiben sie in der Registry stehen und
+sind nicht verfügbar.
+
+Fällt der TA-Port bei „Weboberfläche und TA-Port“ aus, werden nur seine
+Entitäten `unavailable`. Unterstützt ist nur der Logging-Modus CAN. Der
+TA-Port ist eine eigene Verbindung und kollidiert nicht mit der Sitzung der
+Weboberfläche.
+
+### Namen der Eingänge und Ausgänge
+
+Der TA-Port liefert keine Namen. Im Feld **Namen** steht je Zeile ein Eingang
+oder Ausgang:
+
+```text
+S1 = Temperatur Kollektor
+S2 = Heizpumpe Freigabe
+A6 = Heizkreis Pumpe
+```
+
+Beim ersten Öffnen ist das Feld mit den Namen der Weboberfläche vorbelegt. Die
+Namen gelten für alle Entitäten, auch die aus der Weboberfläche; ohne Eintrag
+gilt der Name der Weboberfläche bzw. ein Standardname wie „Durchfluss S16“.
+Eine in Home Assistant umbenannte Entität behält ihren Namen.
+
+Eine UVR1611 meldet digitale Eingänge am TA-Port so, dass ein ausgeschalteter
+Eingang nicht von einem unbenutzten zu unterscheiden ist. Im Modus „Nur
+TA-Port“ werden digitale Eingänge deshalb nur angelegt, wenn sie hier einen
+Namen haben.
+
+### Datenspeicher nach Abruf löschen
+
+Die Option **Datenspeicher des BL-NET nach Abruf löschen** löscht nach jedem
+erfolgreichen Abruf über den TA-Port die im BL-NET aufgezeichneten Daten (wie
+die Option `reset` von pyblnet). Diese Daten nutzt z. B. Winsol; sie lassen
+sich nicht wiederherstellen. Nach einem fehlgeschlagenen Abruf wird nichts
+gelöscht. Standard: aus.
 
 ## Installation
 
@@ -55,7 +103,9 @@ kopieren und Home Assistant neu starten.
 | CAN-Knoten | optional (1–62), leer = aktiver Knoten des Geräts |
 | Abfrageintervall | in Sekunden, Standard `60`, mindestens `15` |
 
-Das Abfrageintervall lässt sich später über *Konfigurieren* ändern.
+Über *Konfigurieren* lassen sich später Abfrageintervall, Datenquelle,
+TA-Port (Standard des BL-NET `40000`), Namen und das Löschen des Datenspeichers
+einstellen. Beim Speichern wird der TA-Port geprüft, sofern er genutzt wird.
 
 **Hinweis:** Das BL-NET erlaubt nur eine Sitzung gleichzeitig. Ist die
 Weboberfläche anderswo geöffnet, schlägt die Anmeldung fehl.
@@ -86,7 +136,7 @@ Integration dann über die Oberfläche hinzufügen.
 python -m venv .venv
 source .venv/bin/activate
 pip install pytest-homeassistant-custom-component \
-  "pyblnet-async @ git+https://github.com/volkerfrank73/pyblnet-async@v0.1.1"
+  "pyblnet-async @ git+https://github.com/volkerfrank73/pyblnet-async@v0.2.0"
 pytest
 ```
 

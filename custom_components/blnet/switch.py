@@ -21,10 +21,13 @@ async def async_setup_entry(
     async_add_entities: AddEntitiesCallback,
 ) -> None:
     """Set up BLNET switches from a config entry."""
-    coordinator = entry.runtime_data
+    coordinator = entry.runtime_data.web
+    if coordinator is None:
+        return  # TA-only mode: the TA port cannot switch outputs
     for switch_class in (BLNETOutputSwitch, BLNETAutoSwitch):
         async_add_channels(
             entry,
+            coordinator,
             async_add_entities,
             lambda data: data.digital,
             lambda channel, cls=switch_class: cls(coordinator, entry, channel),
@@ -33,6 +36,8 @@ async def async_setup_entry(
 
 class _BLNETOutput(BLNETEntity, SwitchEntity):
     """Common code for the two switches of a digital output."""
+
+    _name_prefix = "A"
 
     def _item(self) -> DigitalValue | None:
         return self.coordinator.data.digital.get(self._channel)
